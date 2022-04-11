@@ -1,0 +1,30 @@
+#3D umap analysis
+#load R packages
+library(Seurat)
+library(dplyr)
+library(plotly)
+#use existing seurat object for generating 3D UMAP
+#UMAP analysis
+yourseuratobject <- RunUMAP(yourseuratobject,
+                            dims = 1:20,
+                            n.components = 3L,metric = "cosine",min.dist = 0.1)
+
+DimPlot(object = yourseuratobject, reduction = 'umap',label = TRUE, pt.size=1,label.size=5)
+
+umap_1 <- yourseuratobject[["umap"]]@cell.embeddings[,1]
+umap_2 <- yourseuratobject[["umap"]]@cell.embeddings[,2]
+umap_3 <- yourseuratobject[["umap"]]@cell.embeddings[,3]
+embeds <- Embeddings(object = yourseuratobject, reduction = "umap")
+
+plot.data <- FetchData(object = yourseuratobject, vars = c("UMAP_1", "UMAP_2", "UMAP_3", "ident"))
+plot.data$label <- paste(rownames(plot.data))
+plot_ly(data = plot.data, 
+        x = ~UMAP_1, y = ~UMAP_2, z = ~UMAP_3, 
+        color = ~ident,
+        type = "scatter3d", 
+        mode = "markers", 
+        marker = list(size = 5, width=2), # controls size of points
+        text=~label, #This is that extra column we made earlier for which we will use for cell ID
+        hoverinfo="text")
+ 
+write.csv(embeds,"3dumap.csv",quote = F) # export the embedding parameters of 3D UMAP
