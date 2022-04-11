@@ -1,0 +1,29 @@
+#Load Rpackages
+library(Seurat)
+library(dplyr)
+#Load reference MALDI-MSI data   
+msidata.data <- read.csv(file='1.csv',row.names = 1, header = TRUE,sep=",")
+msidata.data <- msidata.data*100
+msidata.data<- round(msidata.data,digits=0)
+msidata.data<- as.data.frame(t(msidata.data))
+#Load query MALDI-MSI data   
+msidata.data1 <- read.csv(file='2.csv',row.names = 1, header = TRUE,sep=",")
+msidata.data1 <- msidata.data1*100
+msidata.data1<- round(msidata.data1,digits=0)
+msidata.data1<- as.data.frame(t(msidata.data1))
+#Creat Seurat objects   
+msidata <- CreateSeuratObject(counts = msidata.data, project = "IRI")
+msidata1 <- CreateSeuratObject(counts = msidata.data1, project = "IRI")
+#data normalization and UMAP analysis
+msidata <- SCTransform(msidata, verbose = FALSE) %>% RunPCA(verbose = FALSE) %>% 
+  RunUMAP(dims = 1:30)
+DimPlot(msidata,  label = TRUE)
+msidata1 <- SCTransform(msidata1, verbose = FALSE) %>% RunPCA(verbose = FALSE)
+#data imputation
+anchors <- FindTransferAnchors(reference = msidata, query = msidata1, normalization.method = "SCT")
+predictions.assay <- TransferData(anchorset = anchors, refdata = GetAssayData(msidata[['RNA']]), prediction.assay = TRUE, 
+                                  weight.reduction = msidata1[["pca"]], dims = 1:30)
+#Export the imputed data
+data_to_write_out <- as.data.frame(as.matrix(predictions.assay@data))
+data_to_write_out <- as.data.frame(t(data_to_write_out))
+write.csv(x = data_to_write_out, row.names = TRUE, file = "m2-1.csv")
