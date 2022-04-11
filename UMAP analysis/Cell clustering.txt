@@ -16,14 +16,13 @@ msidata <- SCTransform(msidata, verbose = FALSE)
 msidata <- RunPCA(msidata, assay = "SCT", verbose = FALSE) 
 VizDimLoadings(msidata, dims = 1:2, reduction = "pca")
 DimPlot(msidata, reduction = "pca")
-DimHeatmap(msidata, dims = 1, cells = 500, balanced = TRUE)
 DimHeatmap(msidata, dims = 1:15, cells = 500, balanced = TRUE)
 ElbowPlot(msidata)
 
 # UMAP analysis
 msidata <- FindNeighbors(msidata, dims = 1:17)
 msidata <- FindClusters(msidata, resolution = 0.5)
-head(x = Idents(object = msidata), 5)
+
 msidata <- RunUMAP(object = msidata, dims = 1:20,n.neighbors = 15L, min.dist = 0.05,check_duplicates = FALSE) 
 DimPlot(object = msidata, reduction = 'umap', label = TRUE, group.by="orig.ident",pt.size=1,label.size=5)
 DimPlot(object = msidata, reduction = 'umap', label = TRUE, pt.size=1,label.size=5)
