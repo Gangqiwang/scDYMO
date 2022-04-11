@@ -1,0 +1,64 @@
+#Load R packages
+library(monocle3)
+library(ggplot2)
+library(dplyr)
+
+#Generate dataset from Seurat object for trajectory analysis
+data <- msidata@assays$RNA@data
+pd <-  msidata@meta.data
+
+new_pd<-select(pd,nCount_RNA,nFeature_RNA)
+new_pd$Cell.type<-Idents(msidata)
+head(new_pd)
+
+fData <- data.frame(gene_short_name = row.names(data), row.names = row.names(data))
+cds <- new_cell_data_set(data,cell_metadata  = new_pd,gene_metadata  = fData)
+cds <- preprocess_cds(cds, num_dim =22,norm_method = "log")
+
+cds <- reduce_dimension(cds, max_components = 2,umap.n_neighbors=15L,umap.min_dist = 0.3)
+
+plot_cells(cds, label_groups_by_cluster=FALSE, color_cells_by = "Cell.type")
+
+cds <- cluster_cells(cds)
+
+plot_cells(cds, color_cells_by = "partition")
+cds <- learn_graph(cds)
+plot_cells(cds,color_cells_by = "Cell.type",
+           label_groups_by_cluster=FALSE,
+           label_leaves=FALSE,
+           label_branch_points=FALSE,
+           group_label_size = 5,
+           labels_per_group = 2,
+           graph_label_size = 5,
+           cell_size = 0.1,
+           trajectory_graph_segment_size = 2)
+
+plot_cells(cds,
+           color_cells_by = "Cell.type",
+           label_cell_groups=FALSE,
+           label_leaves=TRUE,
+           label_branch_points=TRUE,
+           graph_label_size=1.5,
+           trajectory_graph_segment_size = 1)
+cds <- order_cells(cds)
+
+plot_cells(cds,
+           color_cells_by = "pseudotime",
+           label_groups_by_cluster=FALSE,
+           label_leaves=FALSE,
+           label_branch_points=FALSE,
+           group_label_size = 5,
+           labels_per_group = 2,
+           graph_label_size = 5,
+           cell_size = 1,
+           trajectory_graph_segment_size = 2)
+
+#export pseudotime score 
+a= cds@principal_graph_aux@listData$UMAP$pseudotime
+b= as.matrix(a)
+write.csv(b,"pseudotime_PThifr1.csv",quote = F)
+#export emmbeding information of UMAP 
+c= cds@principal_graph_aux@listData$UMAP$pr_graph_cell_proj_dist
+d= as.matrix(c)
+d<- as.data.frame(t(d))
+write.csv(d,"emmbed_PT.csv",quote = F)
