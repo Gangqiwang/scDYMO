@@ -23,7 +23,7 @@ ElbowPlot(msidata)
 msidata <- FindNeighbors(msidata, dims = 1:17)
 msidata <- FindClusters(msidata, resolution = 0.5)
 
-msidata <- RunUMAP(object = msidata, dims = 1:20,n.neighbors = 15L, min.dist = 0.05,check_duplicates = FALSE) 
+msidata <- RunUMAP(object = msidata, dims = 1:17,n.neighbors = 15L, min.dist = 0.05,check_duplicates = FALSE) 
 DimPlot(object = msidata, reduction = 'umap', label = TRUE, group.by="orig.ident",pt.size=1,label.size=5)
 DimPlot(object = msidata, reduction = 'umap', label = TRUE, pt.size=1,label.size=5)
 
