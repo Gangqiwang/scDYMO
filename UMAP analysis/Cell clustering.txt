@@ -1,0 +1,36 @@
+#load R packages
+library(Seurat)
+library(dplyr)
+
+#load MALDI-MSI data exported from SCILS
+pbmc.data <- read.csv(file='1.csv',row.names = 1, header = TRUE,sep=",") 
+#transform of data format
+pbmc.data <- pbmc.data*100
+pbmc.data<- round(pbmc.data,digits=0)
+pbmc.data<- as.data.frame(t(pbmc.data)) 
+#creat Seurate object
+pbmc <- CreateSeuratObject(counts = pbmc.data, project = "IRI")
+# data normalization
+pbmc <- SCTransform(pbmc, verbose = FALSE) 
+# PCA analysis
+pbmc <- RunPCA(pbmc, assay = "SCT", verbose = FALSE) 
+VizDimLoadings(pbmc, dims = 1:2, reduction = "pca")
+DimPlot(pbmc, reduction = "pca")
+DimHeatmap(pbmc, dims = 1, cells = 500, balanced = TRUE)
+DimHeatmap(pbmc, dims = 1:15, cells = 500, balanced = TRUE)
+ElbowPlot(pbmc)
+
+# UMAP analysis
+pbmc <- FindNeighbors(pbmc, dims = 1:17)
+pbmc <- FindClusters(pbmc, resolution = 0.5)
+head(x = Idents(object = pbmc), 5)
+pbmc <- RunUMAP(object = pbmc, dims = 1:20,n.neighbors = 15L, min.dist = 0.05,check_duplicates = FALSE) 
+DimPlot(object = pbmc, reduction = 'umap', label = TRUE, group.by="orig.ident",pt.size=1,label.size=5)
+DimPlot(object = pbmc, reduction = 'umap', label = TRUE, pt.size=1,label.size=5)
+
+# change cluster names
+new.cluster.ids <- c("0", "1","DT","3","DT","5","G","7","8","PRO",
+                     "10","11","PRO","DT")
+names(new.cluster.ids) <- levels(pbmc)
+pbmc <- RenameIdents(pbmc, new.cluster.ids)
+DimPlot(pbmc, reduction = "umap", label = TRUE, pt.size=2,label.size=6) 
