@@ -1,0 +1,29 @@
+#Export the pixel coordinators of MALDI-MSI data from SCiLS
+#Combine the pixel coordinators with data for generating molecular histology, such as data expoted from 3D UMAP or trajectory analysis
+#Transform data format into matrix data in R
+#Load R package
+library(reshape2)
+
+df <- read.csv(file='1.csv',sep=",")
+a=dcast(df,y~x)
+write.csv(a,"umap1.csv",quote = F) 
+
+df <- read.csv(file='1.csv',sep=",")
+a=dcast(df,y~x)
+write.csv(a,"umap2.csv",quote = F)
+
+df <- read.csv(file='1.csv',sep=",")
+a=dcast(df,y~x)
+write.csv(a,"umap3.csv",quote = F)
+
+#Generate molecular histology images in MATLAB R2019a
+UMAP1=fopen('UMAP1.txt');
+UMAP2=fopen('UMAP2.txt');
+UMAP3=fopen('UMAP3.txt');
+a=readmatrix("UMAP1");
+b=readmatrix("UMAP2");
+c=readmatrix("UMAP3");
+rgbImage(:,:,1) = uint8(a);
+rgbImage(:,:,2) = uint8(b);
+rgbImage(:,:,3) = uint8(c);
+imshow(rgbImage);
