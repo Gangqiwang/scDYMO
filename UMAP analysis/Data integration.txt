@@ -1,0 +1,24 @@
+#load R packages
+library(Seurat)
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+
+#load all the seurat objects
+#combine all the seurat objects
+list <- list(msidata1,msidata2,msidata3,msidata4,msidata5)
+
+features <- SelectIntegrationFeatures(object.list = list, nfeatures = 3000)
+list <- PrepSCTIntegration(object.list = list, anchor.features = features)
+anchors <- FindIntegrationAnchors(object.list = list,dims = 1:30,anchor.features = features,normalization.method = "SCT",reduction = "rpca")
+integrated <- IntegrateData(anchorset = anchors, dims = 1:30,normalization.method = "SCT")
+
+DefaultAssay(object = integrated) <- "integrated"
+integrated <- ScaleData(object = integrated, verbose = FALSE)
+integrated <- RunPCA(object = integrated, npcs = 30, verbose = FALSE)
+
+integrated <- RunUMAP(object = integrated, reduction = "pca", 
+                      dims = 1:20,n.neighbors = 15L, min.dist = 0.01,check_duplicates=FALSE)
+DimPlot(object = integrated, reduction = "umap", group.by = "orig.ident",pt.size=0.2,label.size=0,label = TRUE)
+DimPlot(object = integrated, reduction = "umap", split.by = "orig.ident",pt.size=1,label.size=6,label = F)+ NoLegend()
+DimPlot(object = integrated, reduction = "umap", pt.size=0.2,label.size=6,label = TRUE)
